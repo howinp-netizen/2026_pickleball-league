@@ -38,16 +38,16 @@
   .match-header span:first-child { font-size: 14px; font-weight: 800; color: #f1f5f9; }
   .match-header span:last-child { font-size: 12px; color: #94a3b8; }
   .match-courts { display: grid; grid-template-columns: 1fr 1fr; }
-  .court { padding: 12px; }
+  .court { padding: 10px 8px; }
   .court:first-child { border-right: 1px solid #0f172a; }
   .court-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .court-label { font-size: 12px; color: #f1f5f9; font-weight: 600; }
   .group-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
-  .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .score-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 6px; }
   .score-row:last-child { margin-bottom: 0; }
-  .team-name { font-size: 13px; flex: 1; margin-right: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f1f5f9; }
+  .team-name { font-size: 13px; flex: 1; min-width: 0; overflow: visible; white-space: normal; word-break: keep-all; color: #f1f5f9; line-height: 1.4; padding-top: 4px; }
   .team-name.winner { color: #fbbf24; font-weight: 700; }
-  .score-input { width: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 7px 2px; color: #f1f5f9; font-size: 16px; font-weight: 700; text-align: center; outline: none; font-family: inherit; flex-shrink: 0; }
+  .score-input { width: 40px; min-width: 40px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 7px 2px; color: #f1f5f9; font-size: 16px; font-weight: 700; text-align: center; outline: none; font-family: inherit; flex-shrink: 0; }
   .score-input.winner { border-color: #fbbf24; color: #fbbf24; }
 
   /* 순위 */
