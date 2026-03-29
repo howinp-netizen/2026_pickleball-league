@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏓 피클볼 리그</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #f1f5f9; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; font-size: 15px; }
+
+  .header { background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 1px solid #1e293b; padding: 14px 16px; position: sticky; top: 0; z-index: 100; }
+  .header-inner { max-width: 640px; margin: 0 auto; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
+  .header-title { font-size: 20px; font-weight: 800; }
+  .header-status { font-size: 11px; color: #475569; margin-top: 2px; }
+  .refresh-btn { background: #3b82f6; border: none; border-radius: 8px; padding: 8px 13px; cursor: pointer; font-size: 16px; color: #fff; }
+  .refresh-btn:active { opacity: 0.7; }
+
+  .tabs { display: flex; gap: 3px; margin-top: 10px; }
+  .tab-btn { flex: 1; padding: 8px 2px; border: none; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 700; background: #1e293b; color: #475569; transition: all 0.15s; }
+  .tab-btn.active { background: #3b82f6; color: #fff; }
+
+  .content { max-width: 640px; margin: 0 auto; padding: 16px 14px 60px; }
+
+  /* 카드 */
+  .card { background: #1e293b; border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+  .card-header { padding: 10px 16px; font-size: 14px; font-weight: 800; color: #fff; }
+
+  /* 팀 설정 */
+  .team-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid #0f172a; }
+  .team-row:last-child { border-bottom: none; }
+  .team-num { width: 24px; height: 24px; border-radius: 50%; background: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
+  .team-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 9px 12px; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; }
+
+  /* 경기 카드 */
+  .match-card { background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+  .match-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; background: #0f172a; }
+  .match-header span:first-child { font-size: 13px; font-weight: 800; color: #64748b; }
+  .match-header span:last-child { font-size: 11px; color: #334155; }
+  .match-courts { display: grid; grid-template-columns: 1fr 1fr; }
+  .court { padding: 12px; }
+  .court:first-child { border-right: 1px solid #0f172a; }
+  .court-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .court-label { font-size: 11px; color: #475569; }
+  .group-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+  .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+  .score-row:last-child { margin-bottom: 0; }
+  .team-name { font-size: 12px; flex: 1; margin-right: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #64748b; }
+  .team-name.winner { color: #fbbf24; font-weight: 700; }
+  .score-input { width: 40px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 6px 2px; color: #f1f5f9; font-size: 15px; font-weight: 700; text-align: center; outline: none; font-family: inherit; flex-shrink: 0; }
+  .score-input.winner { border-color: #fbbf24; color: #fbbf24; }
+
+  /* 순위 */
+  .standings-header-row { display: grid; grid-template-columns: 24px 1fr 38px 30px 30px 38px; padding: 4px 14px; font-size: 10px; color: #334155; font-weight: 700; }
+  .standings-row { display: grid; grid-template-columns: 24px 1fr 38px 30px 30px 38px; padding: 9px 14px; align-items: center; border-top: 1px solid #0f172a; }
+  .standings-row.top { background: rgba(255,255,255,0.05); }
+
+  /* 와일드카드 */
+  .wc-card { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid rgba(168,85,247,0.2); margin-bottom: 14px; }
+  .wc-header { background: #a855f7; padding: 10px 16px; font-size: 14px; font-weight: 800; color: #fff; }
+  .wc-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid #0f172a; }
+
+  /* 토너먼트 */
+  .rps-card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(168,85,247,0.3); }
+  .rps-title { font-size: 14px; font-weight: 800; color: #a855f7; margin-bottom: 4px; }
+  .rps-sub { font-size: 11px; color: #475569; margin-bottom: 14px; line-height: 1.6; }
+  .rps-label { font-size: 11px; color: #64748b; margin-bottom: 5px; }
+  .rps-select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; margin-bottom: 10px; }
+
+  .bracket-stage-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
+  .bracket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+
+  /* 브라켓 매치 — 리그일정과 동일한 스타일 */
+  .bracket-match { background: #1e293b; border-radius: 10px; overflow: hidden; }
+  .bracket-match-header { padding: 6px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .bracket-match-body { padding: 10px 12px; }
+
+  .connector { display: grid; grid-template-columns: 1fr 16px 1fr; align-items: center; margin: 3px 0; }
+  .connector-left { display: flex; justify-content: flex-end; }
+  .connector-left-line { width: 50%; height: 12px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; border-radius: 0 0 4px 0; }
+  .connector-center { height: 22px; border-left: 1px solid #334155; margin: 0 auto; }
+  .connector-right { display: flex; justify-content: flex-start; }
+  .connector-right-line { width: 50%; height: 12px; border-bottom: 1px solid #334155; border-left: 1px solid #334155; border-radius: 0 0 0 4px; }
+
+  .champion-box { margin-top: 18px; background: linear-gradient(135deg, rgba(251,191,36,0.1), rgba(245,158,11,0.1)); border: 2px solid #fbbf24; border-radius: 14px; padding: 20px; text-align: center; }
+  .champion-trophy { font-size: 32px; margin-bottom: 6px; }
+  .champion-label { font-size: 11px; color: #fbbf24; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+  .champion-name { font-size: 22px; font-weight: 900; color: #fff; }
+
+  .legend { margin-top: 16px; background: #1e293b; border-radius: 10px; padding: 14px 16px; border: 1px solid #334155; }
+  .legend-title { font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+  .legend-item { font-size: 11px; color: #475569; line-height: 2.2; }
+
+  /* 베팅 */
+  .bet-intro { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
+  .bet-intro-title { font-size: 14px; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
+  .bet-intro-sub { font-size: 12px; color: #475569; line-height: 1.7; }
+  .bet-form { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #3b82f655; }
+  .bet-form-title { font-size: 13px; font-weight: 800; color: #3b82f6; margin-bottom: 12px; }
+  .bet-label { font-size: 12px; color: #64748b; margin-bottom: 5px; }
+  .bet-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; margin-bottom: 10px; }
+  .bet-group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .bet-group-btn { padding: 14px 8px; border: 2px solid #334155; border-radius: 10px; background: #0f172a; color: #475569; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.15s; font-family: inherit; }
+  .bet-group-btn.selected { color: #fff; }
+  .bet-submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #3b82f6; color: #fff; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit; }
+  .bet-submit:active { opacity: 0.8; }
+  .bet-submit:disabled { background: #334155; color: #475569; cursor: not-allowed; }
+
+  .bet-results { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+  .bet-results-header { background: #0f172a; padding: 12px 16px; font-size: 13px; font-weight: 800; color: #64748b; }
+  .bet-group-section { border-top: 1px solid #0f172a; }
+  .bet-group-title { padding: 10px 16px; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
+  .bet-group-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .bet-person-row { padding: 8px 16px 8px 28px; font-size: 13px; color: #94a3b8; border-top: 1px solid #0f172a05; }
+  .bet-empty { padding: 16px; font-size: 12px; color: #334155; text-align: center; }
+
+  /* 흐름 */
+  .flow-card { background: #1e293b; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #334155; }
+  .flow-title { font-size: 13px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+  .flow-row { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid #0f172a; }
+  .flow-row:last-child { border-bottom: none; }
+  .flow-time { width: 76px; font-size: 10px; color: #475569; font-weight: 700; flex-shrink: 0; }
+  .flow-bar { width: 3px; height: 34px; border-radius: 2px; flex-shrink: 0; }
+  .flow-label { font-size: 13px; font-weight: 700; }
+  .flow-sub { font-size: 11px; color: #475569; }
+
+  .wait-card { background: #1e293b; border-radius: 10px; padding: 14px 16px; margin-top: 8px; border: 1px solid #334155; }
+  .wait-title { font-size: 13px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+  .wait-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #0f172a; }
+  .wait-row:last-child { border-bottom: none; }
+  .group-pill { border-radius: 5px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+
+  .section-title { font-size: 13px; font-weight: 800; color: #f1f5f9; margin-bottom: 8px; }
+  .section-sub { font-size: 11px; color: #475569; margin-bottom: 12px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <div class="header-title">🏓 피클볼 리그</div>
+        <div class="header-status" id="status">연결 중...</div>
+      </div>
+      <button class="refresh-btn" onclick="manualRefresh()">🔄</button>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('setup')">🏷️ 팀</button>
+      <button class="tab-btn" onclick="switchTab('schedule')">📋 리그일정</button>
+      <button class="tab-btn" onclick="switchTab('standings')">📊 리그순위</button>
+      <button class="tab-btn" onclick="switchTab('betting')">🎯 베팅</button>
+      <button class="tab-btn" onclick="switchTab('tournament')">🏆 토너먼트</button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 팀 설정 -->
+  <div id="tab-setup">
+    <div style="font-size:13px;color:#64748b;margin-bottom:14px">팀 이름을 수정할 수 있어요.</div>
+    <div id="setup-groups"></div>
+  </div>
+
+  <!-- 리그일정 -->
+  <div id="tab-schedule" class="hidden">
+    <div class="flow-card">
+      <div class="flow-title">⏱️ 전체 진행 흐름</div>
+      <div class="flow-row"><div class="flow-time">0:00~1:30</div><div class="flow-bar" style="background:#3b82f6"></div><div><div class="flow-label" style="color:#3b82f6">조별리그</div><div class="flow-sub">6경기 × 15분 · 7점제</div></div></div>
+      <div class="flow-row"><div class="flow-time">1:30~1:50</div><div class="flow-bar" style="background:#f59e0b"></div><div><div class="flow-label" style="color:#f59e0b">준준결승</div><div class="flow-sub">2경기 동시 · 11점제</div></div></div>
+      <div class="flow-row"><div class="flow-time">1:50~2:10</div><div class="flow-bar" style="background:#3b82f6"></div><div><div class="flow-label" style="color:#3b82f6">준결승</div><div class="flow-sub">2경기 동시 · 11점제</div></div></div>
+      <div class="flow-row"><div class="flow-time">2:10~2:30</div><div class="flow-bar" style="background:#fbbf24"></div><div><div class="flow-label" style="color:#fbbf24">결승 & 3위전</div><div class="flow-sub">2경기 동시 · 11점제</div></div></div>
+    </div>
+    <div class="section-title">🏓 경기 순서 & 점수 입력</div>
+    <div class="section-sub">7점제 · A/B조 ↔ C/D조 번갈아 코트 사용</div>
+    <div id="schedule-matches"></div>
+    <div class="wait-card">
+      <div class="wait-title">🪑 대기 현황</div>
+      <div class="wait-row"><span class="group-pill" style="background:#3b82f6">A조</span><span style="font-size:12px;color:#10b981">🏓 1·3·5경기</span><span style="font-size:12px;color:#475569">🪑 2·4·6경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#ef4444">B조</span><span style="font-size:12px;color:#10b981">🏓 1·3·5경기</span><span style="font-size:12px;color:#475569">🪑 2·4·6경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#f59e0b">C조</span><span style="font-size:12px;color:#10b981">🏓 2·4·6경기</span><span style="font-size:12px;color:#475569">🪑 1·3·5경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#10b981">D조</span><span style="font-size:12px;color:#10b981">🏓 2·4·6경기</span><span style="font-size:12px;color:#475569">🪑 1·3·5경기</span></div>
+    </div>
+  </div>
+
+  <!-- 리그순위 -->
+  <div id="tab-standings" class="hidden">
+    <div id="standings-content"></div>
+  </div>
+
+  <!-- 베팅 -->
+  <div id="tab-betting" class="hidden">
+    <div class="bet-intro">
+      <div class="bet-intro-title">🎯 우승 조 예측 베팅</div>
+      <div class="bet-intro-sub">토너먼트 시작 전, 어느 조에서 우승팀이 나올지 예측해보세요! 모든 참가자의 베팅 결과가 공개되어 응원 열기를 높여드립니다 🔥</div>
+    </div>
+    <div class="bet-form">
+      <div class="bet-form-title">📝 베팅 참여</div>
+      <div class="bet-label">내 이름</div>
+      <input class="bet-input" id="bet-name" placeholder="이름을 입력하세요" />
+      <div class="bet-label">우승할 조 선택</div>
+      <div class="bet-group-grid" id="bet-group-grid">
+        <button class="bet-group-btn" data-group="A" onclick="selectBetGroup('A')" style="border-color:#3b82f655">🔵 A조</button>
+        <button class="bet-group-btn" data-group="B" onclick="selectBetGroup('B')" style="border-color:#ef444455">🔴 B조</button>
+        <button class="bet-group-btn" data-group="C" onclick="selectBetGroup('C')" style="border-color:#f59e0b55">🟡 C조</button>
+        <button class="bet-group-btn" data-group="D" onclick="selectBetGroup('D')" style="border-color:#10b98155">🟢 D조</button>
+      </div>
+      <button class="bet-submit" id="bet-submit" onclick="submitBet()" disabled>베팅 완료</button>
+    </div>
+    <div class="bet-results">
+      <div class="bet-results-header">📊 전체 베팅 현황</div>
+      <div id="bet-results-content"><div class="bet-empty">아직 베팅한 사람이 없어요</div></div>
+    </div>
+  </div>
+
+  <!-- 토너먼트 -->
+  <div id="tab-tournament" class="hidden">
+    <div class="rps-card">
+      <div class="rps-title">✌️ 가위바위보 결과 입력</div>
+      <div class="rps-sub">4개 조 1위팀끼리 가위바위보 → 진 2팀이 와일드카드와 준준결승, 이긴 2팀은 준결승 직행</div>
+      <div class="rps-label">✌️ 진 팀 1 → <span style="color:#a855f7">WC1과 준준결승</span></div>
+      <select class="rps-select" id="rps0" onchange="saveRps(0, this.value)"><option value="">-- 팀 선택 --</option></select>
+      <div class="rps-label">✌️ 진 팀 2 → <span style="color:#a855f7">WC2와 준준결승</span></div>
+      <select class="rps-select" id="rps1" onchange="saveRps(1, this.value)"><option value="">-- 팀 선택 --</option></select>
+    </div>
+    <div class="section-title">🏆 토너먼트 브라켓</div>
+    <div id="bracket-content"></div>
+  </div>
+
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBYrHJeT6jYMY9EFzeDqyyqIUTUS_lSJ_8",
+  authDomain: "pickleball-league-3e3da.firebaseapp.com",
+  databaseURL: "https://pickleball-league-3e3da-default-rtdb.firebaseio.com",
+  projectId: "pickleball-league-3e3da",
+  storageBucket: "pickleball-league-3e3da.firebasestorage.app",
+  messagingSenderId: "296531561634",
+  appId: "1:296531561634:web:d8479dcd946c3aacdfdbfb"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const GROUPS = ["A","B","C","D"];
+const GROUP_COLORS = { A:"#3b82f6", B:"#ef4444", C:"#f59e0b", D:"#10b981" };
+const GROUP_EMOJIS = { A:"🔵", B:"🔴", C:"🟡", D:"🟢" };
+const SCHEDULE = [
+  { round:1, c1:{g:"A",m:[0,1]}, c2:{g:"B",m:[0,1]} },
+  { round:2, c1:{g:"C",m:[0,1]}, c2:{g:"D",m:[0,1]} },
+  { round:3, c1:{g:"A",m:[0,2]}, c2:{g:"B",m:[0,2]} },
+  { round:4, c1:{g:"C",m:[0,2]}, c2:{g:"D",m:[0,2]} },
+  { round:5, c1:{g:"A",m:[1,2]}, c2:{g:"B",m:[1,2]} },
+  { round:6, c1:{g:"C",m:[1,2]}, c2:{g:"D",m:[1,2]} },
+];
+
+let state = {
+  teams: {
+    A: ["A조 1팀 (정목사님 & 은혜)", "A조 2팀 (종혁 & 수민)", "A조 3팀 (승엽 & 시윤)"],
+    B: ["B조 1팀 (성규 & 연진)", "B조 2팀 (윤서 & 희원)", "B조 3팀 (종명 & 현진)"],
+    C: ["C조 1팀 (지유 & 하연)", "C조 2팀 (호인 & 다희)", "C조 3팀 (은섭 & 서연)"],
+    D: ["D조 1팀 (건 & 예은)", "D조 2팀 (정민 & 유리)", "D조 3팀 (보민 & 민근)"]
+  },
+  scores: {
+    A:{"0-1":["",""],"0-2":["",""],"1-2":["",""]},
+    B:{"0-1":["",""],"0-2":["",""],"1-2":["",""]},
+    C:{"0-1":["",""],"0-2":["",""],"1-2":["",""]},
+    D:{"0-1":["",""],"0-2":["",""],"1-2":["",""]}
+  },
+  tournament: {
+    rpsLosers:["",""],
+    qf:{m1:["",""],m2:["",""]},
+    sf:{m1:["",""],m2:["",""]},
+    f:{final:["",""],third:["",""]}
+  },
+  bets: {}
+};
+
+let currentTab = "setup";
+let saveTimer = null;
+let selectedBetGroup = null;
+
+// Firebase 실시간 연결
+db.ref("league").on("value", snap => {
+  const data = snap.val();
+  if (data) {
+    if (data.teams) state.teams = data.teams;
+    if (data.scores) state.scores = data.scores;
+    if (data.tournament) state.tournament = data.tournament;
+    if (data.bets) state.bets = data.bets;
+  }
+  renderAll();
+  document.getElementById("status").textContent = "✅ " + new Date().toLocaleTimeString() + " 업데이트됨";
+});
+
+function saveToFirebase() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    document.getElementById("status").textContent = "⏳ 저장 중...";
+    db.ref("league").set(state).then(() => {
+      document.getElementById("status").textContent = "✅ " + new Date().toLocaleTimeString() + " 저장됨";
+    });
+  }, 600);
+}
+
+function manualRefresh() {
+  document.getElementById("status").textContent = "🔄 새로고침 중...";
+  db.ref("league").once("value", snap => {
+    const data = snap.val();
+    if (data) {
+      if (data.teams) state.teams = data.teams;
+      if (data.scores) state.scores = data.scores;
+      if (data.tournament) state.tournament = data.tournament;
+      if (data.bets) state.bets = data.bets;
+    }
+    renderAll();
+    document.getElementById("status").textContent = "✅ " + new Date().toLocaleTimeString() + " 업데이트됨";
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  const ids = ["setup","schedule","standings","betting","tournament"];
+  document.querySelectorAll(".tab-btn").forEach((b, i) => b.classList.toggle("active", ids[i] === tab));
+  ids.forEach(t => document.getElementById("tab-" + t).classList.toggle("hidden", t !== tab));
+  renderAll();
+}
+
+// ── 계산 ──────────────────────────────────────────────────────
+function calcStandings(g) {
+  return state.teams[g].map((name, i) => {
+    let pts=0,won=0,lost=0,gf=0,ga=0;
+    Object.keys(state.scores[g]).forEach(key => {
+      const [a,b] = key.split("-").map(Number);
+      const sa=Number(state.scores[g][key][0]), sb=Number(state.scores[g][key][1]);
+      if (isNaN(sa)||isNaN(sb)) return;
+      if (a===i){gf+=sa;ga+=sb;sa>sb?(pts+=3,won++):lost++;}
+      if (b===i){gf+=sb;ga+=sa;sb>sa?(pts+=3,won++):lost++;}
+    });
+    return {name,idx:i,pts,won,lost,diff:gf-ga,gf};
+  }).sort((a,b)=>b.pts-a.pts||b.diff-a.diff||b.gf-a.gf);
+}
+
+function getWildcards() {
+  return GROUPS.map(g => {
+    const st = calcStandings(g);
+    return st[1] ? {...st[1],group:g} : null;
+  }).filter(Boolean).sort((a,b)=>b.pts-a.pts||b.diff-a.diff||b.gf-a.gf).slice(0,2);
+}
+
+function top1Name(g) { return g?(calcStandings(g)[0]?.name||"?"):"?"; }
+function getWinner(sc,t0,t1){if(sc[0]===""||sc[1]==="")return"?";return Number(sc[0])>Number(sc[1])?t0:t1;}
+function getLoser(sc,t0,t1){if(sc[0]===""||sc[1]==="")return"?";return Number(sc[0])>Number(sc[1])?t1:t0;}
+
+// ── 렌더링 ────────────────────────────────────────────────────
+function renderAll() {
+  if (currentTab==="setup") renderSetup();
+  if (currentTab==="schedule") renderSchedule();
+  if (currentTab==="standings") renderStandings();
+  if (currentTab==="betting") renderBetting();
+  if (currentTab==="tournament") renderTournament();
+}
+
+function renderSetup() {
+  document.getElementById("setup-groups").innerHTML = GROUPS.map(g => `
+    <div class="card" style="border:1px solid ${GROUP_COLORS[g]}33">
+      <div class="card-header" style="background:${GROUP_COLORS[g]}">${g}조</div>
+      ${state.teams[g].map((name,i) => `
+        <div class="team-row">
+          <span class="team-num" style="color:${GROUP_COLORS[g]}">${i+1}</span>
+          <input class="team-input" value="${escHtml(name)}" placeholder="${g}조 ${i+1}팀"
+            oninput="updateTeam('${g}',${i},this.value)" />
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+function renderSchedule() {
+  document.getElementById("schedule-matches").innerHTML = SCHEDULE.map(round => {
+    const {c1,c2}=round;
+    const startMin=(round.round-1)*15, endMin=startMin+15;
+    const toTime=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,"0")}`;
+    return `
+      <div class="match-card">
+        <div class="match-header">
+          <span>${round.round}경기</span>
+          <span>${toTime(startMin)} ~ ${toTime(endMin)}</span>
+        </div>
+        <div class="match-courts">
+          ${renderCourtInput(c1.g,c1.m,"코트 1")}
+          ${renderCourtInput(c2.g,c2.m,"코트 2")}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderCourtInput(g, m, label) {
+  const key=`${m[0]}-${m[1]}`;
+  const sc=state.scores[g][key];
+  const done=sc[0]!==""&&sc[1]!=="";
+  const w=done?(Number(sc[0])>Number(sc[1])?0:1):-1;
+  const color=GROUP_COLORS[g];
+  return `
+    <div class="court">
+      <div class="court-label-row">
+        <span class="court-label">${label}</span>
+        <span class="group-badge" style="background:${color}22;color:${color}">${g}조</span>
+      </div>
+      ${[0,1].map(si=>{
+        const name=state.teams[g][m[si]];
+        const isW=w===si;
+        return `<div class="score-row">
+          <span class="team-name ${isW?"winner":""}">${isW?"🥇":""}${escHtml(name)}</span>
+          <input class="score-input ${isW?"winner":""}" type="number" min="0" max="7" value="${sc[si]}"
+            oninput="updateScore('${g}','${key}',${si},this.value)" />
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+
+function renderStandings() {
+  const wc = getWildcards();
+  let html = GROUPS.map(g => {
+    const st=calcStandings(g);
+    const color=GROUP_COLORS[g];
+    return `
+      <div class="card" style="border:1px solid ${color}33">
+        <div class="card-header" style="background:${color}">${g}조 순위</div>
+        <div class="standings-header-row"><span>#</span><span>팀</span><span style="text-align:center">승점</span><span style="text-align:center">승</span><span style="text-align:center">패</span><span style="text-align:center">득실</span></div>
+        ${st.map((row,rank)=>`
+          <div class="standings-row ${rank===0?"top":""}">
+            <span style="font-size:13px;font-weight:800;color:${rank===0?color:"#334155"}">${rank+1}</span>
+            <span style="font-size:13px;font-weight:${rank===0?700:400};color:${rank===0?"#f1f5f9":"#64748b"}">${escHtml(row.name)}</span>
+            <span style="font-size:14px;font-weight:800;color:${color};text-align:center">${row.pts}</span>
+            <span style="font-size:12px;color:#64748b;text-align:center">${row.won}</span>
+            <span style="font-size:12px;color:#64748b;text-align:center">${row.lost}</span>
+            <span style="font-size:12px;color:${row.diff>=0?"#10b981":"#ef4444"};text-align:center">${row.diff>0?"+":""}${row.diff}</span>
+          </div>
+        `).join("")}
+      </div>`;
+  }).join("");
+
+  html += `
+    <div class="wc-card">
+      <div class="wc-header">🎟️ 와일드카드 (2위 중 상위 2팀)</div>
+      ${wc.length===0
+        ? `<div style="padding:14px 16px;font-size:13px;color:#475569">경기 결과를 입력하면 자동 선정됩니다.</div>`
+        : wc.map((w,i)=>`
+          <div class="wc-row">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="background:#a855f722;color:#a855f7;border-radius:16px;padding:3px 10px;font-size:11px;font-weight:700">WC${i+1}</span>
+              <span style="font-size:14px;font-weight:700">${escHtml(w.name)}</span>
+              <span style="font-size:11px;color:#475569">${w.group}조 2위</span>
+            </div>
+            <span style="font-size:14px;font-weight:800;color:#a855f7">${w.pts}점</span>
+          </div>`).join("")}
+    </div>`;
+  document.getElementById("standings-content").innerHTML = html;
+}
+
+// ── 베팅 ─────────────────────────────────────────────────────
+function selectBetGroup(g) {
+  selectedBetGroup = g;
+  document.querySelectorAll(".bet-group-btn").forEach(btn => {
+    const bg = btn.dataset.group;
+    const color = GROUP_COLORS[bg];
+    if (bg === g) {
+      btn.classList.add("selected");
+      btn.style.borderColor = color;
+      btn.style.background = color + "33";
+      btn.style.color = "#fff";
+    } else {
+      btn.classList.remove("selected");
+      btn.style.borderColor = color + "55";
+      btn.style.background = "#0f172a";
+      btn.style.color = "#475569";
+    }
+  });
+  checkBetSubmitEnabled();
+}
+
+function checkBetSubmitEnabled() {
+  const name = document.getElementById("bet-name").value.trim();
+  document.getElementById("bet-submit").disabled = !(name && selectedBetGroup);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("bet-name").addEventListener("input", checkBetSubmitEnabled);
+});
+
+function submitBet() {
+  const name = document.getElementById("bet-name").value.trim();
+  if (!name || !selectedBetGroup) return;
+  state.bets[name] = selectedBetGroup;
+  saveToFirebase();
+  document.getElementById("bet-name").value = "";
+  selectedBetGroup = null;
+  document.querySelectorAll(".bet-group-btn").forEach(btn => {
+    btn.classList.remove("selected");
+    btn.style.background = "#0f172a";
+    btn.style.color = "#475569";
+  });
+  document.getElementById("bet-submit").disabled = true;
+  renderBetting();
+}
+
+function renderBetting() {
+  const bets = state.bets || {};
+  const names = Object.keys(bets);
+
+  // 베팅 현황
+  if (names.length === 0) {
+    document.getElementById("bet-results-content").innerHTML = `<div class="bet-empty">아직 베팅한 사람이 없어요</div>`;
+    return;
+  }
+
+  // 조별로 그룹핑
+  const grouped = { A:[], B:[], C:[], D:[] };
+  names.forEach(name => { if (grouped[bets[name]]) grouped[bets[name]].push(name); });
+
+  let html = GROUPS.map(g => {
+    const people = grouped[g];
+    if (people.length === 0) return "";
+    const color = GROUP_COLORS[g];
+    return `
+      <div class="bet-group-section">
+        <div class="bet-group-title" style="color:${color}">
+          <span>${GROUP_EMOJIS[g]} ${g}조 우승 예측</span>
+          <span class="bet-group-count" style="background:${color}22;color:${color}">${people.length}명</span>
+        </div>
+        ${people.map(p=>`<div class="bet-person-row">👤 ${escHtml(p)}</div>`).join("")}
+      </div>`;
+  }).join("");
+
+  document.getElementById("bet-results-content").innerHTML = html || `<div class="bet-empty">아직 베팅한 사람이 없어요</div>`;
+}
+
+// ── 토너먼트 ──────────────────────────────────────────────────
+function renderTournament() {
+  const wc=getWildcards();
+  const rpsL0=state.tournament.rpsLosers[0]||"?";
+  const rpsL1=state.tournament.rpsLosers[1]||"?";
+  const byeTeams=GROUPS.map(g=>top1Name(g)).filter(n=>n!==rpsL0&&n!==rpsL1&&n!=="?");
+  const sfT0=byeTeams[0]||"?", sfT1=byeTeams[1]||"?";
+  const qfW0=getWinner(state.tournament.qf.m1,rpsL0,wc[0]?.name||"?");
+  const qfW1=getWinner(state.tournament.qf.m2,rpsL1,wc[1]?.name||"?");
+  const sfW0=getWinner(state.tournament.sf.m1,sfT0,qfW0);
+  const sfW1=getWinner(state.tournament.sf.m2,sfT1,qfW1);
+  const sfL0=getLoser(state.tournament.sf.m1,sfT0,qfW0);
+  const sfL1=getLoser(state.tournament.sf.m2,sfT1,qfW1);
+  const champion=getWinner(state.tournament.f.final,sfW0,sfW1);
+
+  // RPS 드롭다운
+  [0,1].forEach(i => {
+    const sel=document.getElementById("rps"+i);
+    sel.innerHTML=`<option value="">-- 팀 선택 --</option>`+
+      GROUPS.map(g=>{
+        const name=top1Name(g);
+        const other=state.tournament.rpsLosers[1-i];
+        return `<option value="${escHtml(name)}" ${other===name?"disabled":""} ${state.tournament.rpsLosers[i]===name?"selected":""}>${escHtml(name)} (${g}조 1위)</option>`;
+      }).join("");
+  });
+
+  document.getElementById("bracket-content").innerHTML = `
+    <div class="bracket-stage-label" style="color:#f59e0b">준준결승 · 11점제</div>
+    <div class="bracket-grid">
+      ${renderBracketMatch("코트 1","#f59e0b",rpsL0,wc[0]?.name||"?",state.tournament.qf.m1,"qf","m1")}
+      ${renderBracketMatch("코트 2","#f59e0b",rpsL1,wc[1]?.name||"?",state.tournament.qf.m2,"qf","m2")}
+    </div>
+    <div class="connector"><div class="connector-left"><div class="connector-left-line"></div></div><div class="connector-center"></div><div class="connector-right"><div class="connector-right-line"></div></div></div>
+    <div class="bracket-stage-label" style="color:#3b82f6">준결승 · 11점제</div>
+    <div class="bracket-grid">
+      ${renderBracketMatch("코트 1","#3b82f6",sfT0,qfW0,state.tournament.sf.m1,"sf","m1")}
+      ${renderBracketMatch("코트 2","#3b82f6",sfT1,qfW1,state.tournament.sf.m2,"sf","m2")}
+    </div>
+    <div class="connector"><div class="connector-left"><div class="connector-left-line"></div></div><div class="connector-center"></div><div class="connector-right"><div class="connector-right-line"></div></div></div>
+    <div class="bracket-grid" style="margin-bottom:6px">
+      <div class="bracket-stage-label" style="color:#fbbf24">🏆 결승 · 코트 1</div>
+      <div class="bracket-stage-label" style="color:#64748b">3위전 · 코트 2</div>
+    </div>
+    <div class="bracket-grid">
+      ${renderBracketMatch(null,"#fbbf24",sfW0,sfW1,state.tournament.f.final,"f","final")}
+      ${renderBracketMatch(null,"#64748b",sfL0,sfL1,state.tournament.f.third,"f","third")}
+    </div>
+    ${champion!=="?"?`
+      <div class="champion-box">
+        <div class="champion-trophy">🏆</div>
+        <div class="champion-label">최종 우승</div>
+        <div class="champion-name">${escHtml(champion)}</div>
+      </div>`:""}
+    <div class="legend">
+      <div class="legend-title">대진 구조 요약</div>
+      <div class="legend-item"><span style="color:#f59e0b">준준결승</span> · 가위바위보 진 1위 × 2 vs 와일드카드 × 2</div>
+      <div class="legend-item"><span style="color:#3b82f6">준결승</span> · 부전승 1위 × 2 vs 준준결승 승자 × 2</div>
+      <div class="legend-item"><span style="color:#fbbf24">결승</span> · 준결승 승자 2팀 (코트 1)</div>
+      <div class="legend-item"><span style="color:#94a3b8">3위전</span> · 준결승 패자 2팀 (코트 2)</div>
+    </div>`;
+}
+
+function renderBracketMatch(label, color, t0, t1, sc, stage, match) {
+  const done=sc[0]!==""&&sc[1]!=="";
+  const n0=Number(sc[0]),n1=Number(sc[1]);
+  const w=done?(n0>n1?0:1):-1;
+  return `
+    <div class="bracket-match" style="border:1px solid ${color}55">
+      ${label?`<div class="bracket-match-header" style="background:${color}22;color:${color}">${label}</div>`:""}
+      <div class="bracket-match-body">
+        ${[t0,t1].map((name,si)=>{
+          const isW=w===si;
+          return `<div class="score-row">
+            <span class="team-name ${isW?"winner":""}">${isW?"🥇":""}${escHtml(name)}</span>
+            <input class="score-input ${isW?"winner":""}" type="number" min="0" max="11" value="${sc[si]}"
+              oninput="updateTournament('${stage}','${match}',${si},this.value)" />
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+
+// ── 데이터 업데이트 ───────────────────────────────────────────
+function updateTeam(g,i,v){state.teams[g][i]=v;saveToFirebase();}
+function updateScore(g,key,si,v){state.scores[g][key][si]=v;saveToFirebase();}
+function updateTournament(stage,match,si,v){state.tournament[stage][match][si]=v;saveToFirebase();renderTournament();}
+function saveRps(i,v){state.tournament.rpsLosers[i]=v;saveToFirebase();renderTournament();}
+function escHtml(str){return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+</script>
+</body>
+</html>
