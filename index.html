@@ -13,7 +13,7 @@
   .header { background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 1px solid #1e293b; padding: 14px 16px; position: sticky; top: 0; z-index: 100; }
   .header-inner { max-width: 640px; margin: 0 auto; }
   .header-top { display: flex; align-items: center; justify-content: space-between; }
-  .header-title { font-size: 22px; font-weight: 800; }
+  .header-title { font-size: 15px; font-weight: 800; line-height: 1.4; }
   .header-status { font-size: 12px; color: #94a3b8; margin-top: 2px; }
 
   .tabs { display: flex; gap: 3px; margin-top: 10px; }
@@ -92,8 +92,8 @@
 
   /* 베팅 */
   .bet-intro { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
-  .bet-intro-title { font-size: 15px; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
-  .bet-intro-sub { font-size: 13px; color: #cbd5e1; line-height: 1.7; }
+  .bet-intro-title { font-size: 17px; font-weight: 800; color: #f1f5f9; margin-bottom: 8px; }
+  .bet-intro-sub { font-size: 15px; color: #cbd5e1; line-height: 1.7; }
   .bet-form { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #3b82f655; }
   .bet-form-title { font-size: 14px; font-weight: 800; color: #3b82f6; margin-bottom: 12px; }
   .bet-label { font-size: 13px; color: #f1f5f9; font-weight: 600; margin-bottom: 6px; }
@@ -140,8 +140,8 @@
   <div class="header-inner">
     <div class="header-top">
       <div>
-        <div class="header-title">🏓 피클볼 리그</div>
-        <div class="header-status" id="status">연결 중...</div>
+        <div class="header-title">🏓 2026년 3월 청년부 연합순모임 피클볼 챌린지</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:3px">📅 2026년 3월 29일 · 오후 3시 시작</div>
       </div>
     </div>
     <div class="tabs">
@@ -165,20 +165,22 @@
   <!-- 리그일정 -->
   <div id="tab-schedule" class="hidden">
     <!-- 점수제 선택 토글 -->
-    <div style="background:#1e293b;border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #334155">
-      <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-bottom:12px">📌 리그 점수제 선택</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <button id="score-btn-7" onclick="setLeagueScoreMode(7)"
-          style="padding:16px 8px;border:2px solid #3b82f6;border-radius:10px;background:#3b82f633;color:#f1f5f9;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
-          7점제
-        </button>
-        <button id="score-btn-11" onclick="setLeagueScoreMode(11)"
-          style="padding:16px 8px;border:2px solid #334155;border-radius:10px;background:#0f172a;color:#94a3b8;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
-          11점제
-        </button>
+    <div style="background:#1e293b;border-radius:10px;padding:10px 14px;margin-bottom:14px;border:1px solid #334155">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;font-weight:700;color:#f1f5f9;flex-shrink:0">리그 점수제</span>
+        <div style="display:flex;gap:6px;flex:1">
+          <button id="score-btn-7" onclick="setLeagueScoreMode(7)"
+            style="flex:1;padding:8px 4px;border:2px solid #3b82f6;border-radius:8px;background:#3b82f633;color:#f1f5f9;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+            7점제
+          </button>
+          <button id="score-btn-11" onclick="setLeagueScoreMode(11)"
+            style="flex:1;padding:8px 4px;border:2px solid #334155;border-radius:8px;background:#0f172a;color:#94a3b8;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">
+            11점제
+          </button>
+        </div>
       </div>
-      <div id="score-mode-note" style="margin-top:10px;font-size:12px;color:#cbd5e1;line-height:1.6">
-        듀스 발생 시 2점 차이로 승리 · 실제 점수 그대로 입력하세요 (예: 9-7, 13-11)
+      <div id="score-mode-note" style="margin-top:8px;font-size:11px;color:#94a3b8;line-height:1.5">
+        듀스 시 2점 차가 날 때까지 계속 진행 · 점수 제한 없이 그대로 입력
       </div>
     </div>
     <div class="flow-card">
@@ -209,7 +211,8 @@
   <div id="tab-betting" class="hidden">
     <div class="bet-intro">
       <div class="bet-intro-title">🎯 우승 조 예측 베팅</div>
-      <div class="bet-intro-sub">토너먼트 시작 전, 어느 조에서 우승팀이 나올지 예측해보세요! 모든 참가자의 베팅 결과가 공개되어 응원 열기를 높여드립니다 🔥</div>
+      <div class="bet-intro-sub">토너먼트 시작 전, 어느 조에서 우승팀이 나올지 예측해보세요!</div>
+      <div class="bet-intro-sub" style="margin-top:6px">🎟️ 우승 조를 맞추신 분들께는 <span style="color:#fbbf24;font-weight:800">식권 1장</span>을 드립니다!</div>
     </div>
     <div class="bet-form">
       <div class="bet-form-title">📝 베팅 참여</div>
@@ -664,7 +667,7 @@ function renderBracketMatch(label, color, t0, t1, sc, stage, match) {
           const isW=w===si;
           return `<div class="score-row">
             <span class="team-name ${isW?"winner":""}">${isW?"🥇":""}${escHtml(name)}</span>
-            <input class="score-input ${isW?"winner":""}" type="number" min="0" max="11" value="${sc[si]}"
+            <input class="score-input ${isW?"winner":""}" type="number" min="0" value="${sc[si]}"
               oninput="updateTournament('${stage}','${match}',${si},this.value)" />
           </div>`;
         }).join("")}
