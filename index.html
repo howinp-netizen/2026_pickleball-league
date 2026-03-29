@@ -164,15 +164,32 @@
 
   <!-- 리그일정 -->
   <div id="tab-schedule" class="hidden">
+    <!-- 점수제 선택 토글 -->
+    <div style="background:#1e293b;border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #334155">
+      <div style="font-size:14px;font-weight:800;color:#f1f5f9;margin-bottom:12px">📌 리그 점수제 선택</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button id="score-btn-7" onclick="setLeagueScoreMode(7)"
+          style="padding:16px 8px;border:2px solid #3b82f6;border-radius:10px;background:#3b82f633;color:#f1f5f9;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
+          7점제
+        </button>
+        <button id="score-btn-11" onclick="setLeagueScoreMode(11)"
+          style="padding:16px 8px;border:2px solid #334155;border-radius:10px;background:#0f172a;color:#94a3b8;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">
+          11점제
+        </button>
+      </div>
+      <div id="score-mode-note" style="margin-top:10px;font-size:12px;color:#cbd5e1;line-height:1.6">
+        듀스 발생 시 2점 차이로 승리 · 실제 점수 그대로 입력하세요 (예: 9-7, 13-11)
+      </div>
+    </div>
     <div class="flow-card">
       <div class="flow-title">⏱️ 전체 진행 흐름</div>
-      <div class="flow-row"><div class="flow-time">0:00~1:30</div><div class="flow-bar" style="background:#3b82f6"></div><div><div class="flow-label" style="color:#3b82f6">조별리그</div><div class="flow-sub">6경기 × 15분 · 7점제</div></div></div>
+      <div class="flow-row"><div class="flow-time">0:00~1:30</div><div class="flow-bar" style="background:#3b82f6"></div><div><div class="flow-label" style="color:#3b82f6">조별리그</div><div class="flow-sub" id="flow-sub-league">6경기 × 15분 · 7점제</div></div></div>
       <div class="flow-row"><div class="flow-time">1:30~1:50</div><div class="flow-bar" style="background:#f59e0b"></div><div><div class="flow-label" style="color:#f59e0b">준준결승</div><div class="flow-sub">2경기 동시 · 11점제</div></div></div>
       <div class="flow-row"><div class="flow-time">1:50~2:10</div><div class="flow-bar" style="background:#3b82f6"></div><div><div class="flow-label" style="color:#3b82f6">준결승</div><div class="flow-sub">2경기 동시 · 11점제</div></div></div>
       <div class="flow-row"><div class="flow-time">2:10~2:30</div><div class="flow-bar" style="background:#fbbf24"></div><div><div class="flow-label" style="color:#fbbf24">결승 & 3위전</div><div class="flow-sub">2경기 동시 · 11점제</div></div></div>
     </div>
     <div class="section-title">🏓 경기 순서 & 점수 입력</div>
-    <div class="section-sub">7점제 · A/B조 ↔ C/D조 번갈아 코트 사용</div>
+    <div class="section-sub" id="schedule-sub">7점제 · 듀스 가능 · A/B조 ↔ C/D조 번갈아 코트 사용</div>
     <div id="schedule-matches"></div>
     <div class="wait-card">
       <div class="wait-title">🪑 대기 현황</div>
@@ -279,6 +296,43 @@ let state = {
 let currentTab = "setup";
 let saveTimer = null;
 let selectedBetGroup = null;
+let leagueScoreMode = 7; // 7 or 11
+
+function setLeagueScoreMode(mode) {
+  leagueScoreMode = mode;
+  // 토글 버튼 스타일
+  const btn7 = document.getElementById("score-btn-7");
+  const btn11 = document.getElementById("score-btn-11");
+  if (mode === 7) {
+    btn7.style.border = "2px solid #3b82f6";
+    btn7.style.background = "#3b82f633";
+    btn7.style.color = "#f1f5f9";
+    btn11.style.border = "2px solid #334155";
+    btn11.style.background = "#0f172a";
+    btn11.style.color = "#94a3b8";
+  } else {
+    btn11.style.border = "2px solid #f59e0b";
+    btn11.style.background = "#f59e0b33";
+    btn11.style.color = "#f1f5f9";
+    btn7.style.border = "2px solid #334155";
+    btn7.style.background = "#0f172a";
+    btn7.style.color = "#94a3b8";
+  }
+  // 텍스트 업데이트
+  const note = document.getElementById("score-mode-note");
+  const sub = document.getElementById("schedule-sub");
+  const flowSub = document.getElementById("flow-sub-league");
+  if (mode === 7) {
+    if (note) note.textContent = "듀스 발생 시 2점 차이로 승리 · 실제 점수 그대로 입력 (예: 9-7, 8-6)";
+    if (sub) sub.textContent = "7점제 · 듀스 가능 · A/B조 ↔ C/D조 번갈아 코트 사용";
+    if (flowSub) flowSub.textContent = "6경기 × 15분 · 7점제";
+  } else {
+    if (note) note.textContent = "듀스 발생 시 2점 차이로 승리 · 실제 점수 그대로 입력 (예: 13-11, 12-10)";
+    if (sub) sub.textContent = "11점제 · 듀스 가능 · A/B조 ↔ C/D조 번갈아 코트 사용";
+    if (flowSub) flowSub.textContent = "6경기 × 20분 · 11점제";
+  }
+  renderSchedule();
+}
 
 // Firebase 실시간 연결
 db.ref("league").on("value", snap => {
@@ -412,7 +466,7 @@ function renderCourtInput(g, m, label) {
         const isW=w===si;
         return `<div class="score-row">
           <span class="team-name ${isW?"winner":""}">${isW?"🥇":""}${escHtml(name)}</span>
-          <input class="score-input ${isW?"winner":""}" type="number" min="0" max="7" value="${sc[si]}"
+          <input class="score-input ${isW?"winner":""}" type="number" min="0" value="${sc[si]}"
             oninput="updateScore('${g}','${key}',${si},this.value)" />
         </div>`;
       }).join("")}
