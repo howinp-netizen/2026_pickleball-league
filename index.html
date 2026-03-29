@@ -8,73 +8,70 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0f172a; color: #f1f5f9; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; font-size: 15px; }
+  body { background: #0f172a; color: #f1f5f9; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; min-height: 100vh; font-size: 16px; }
 
   .header { background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 1px solid #1e293b; padding: 14px 16px; position: sticky; top: 0; z-index: 100; }
   .header-inner { max-width: 640px; margin: 0 auto; }
   .header-top { display: flex; align-items: center; justify-content: space-between; }
-  .header-title { font-size: 20px; font-weight: 800; }
-  .header-status { font-size: 11px; color: #475569; margin-top: 2px; }
-  .refresh-btn { background: #3b82f6; border: none; border-radius: 8px; padding: 8px 13px; cursor: pointer; font-size: 16px; color: #fff; }
-  .refresh-btn:active { opacity: 0.7; }
+  .header-title { font-size: 22px; font-weight: 800; }
+  .header-status { font-size: 12px; color: #94a3b8; margin-top: 2px; }
 
   .tabs { display: flex; gap: 3px; margin-top: 10px; }
-  .tab-btn { flex: 1; padding: 8px 2px; border: none; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 700; background: #1e293b; color: #475569; transition: all 0.15s; }
+  .tab-btn { flex: 1; padding: 9px 2px; border: none; border-radius: 7px; cursor: pointer; font-size: 11px; font-weight: 700; background: #1e293b; color: #94a3b8; transition: all 0.15s; }
   .tab-btn.active { background: #3b82f6; color: #fff; }
 
   .content { max-width: 640px; margin: 0 auto; padding: 16px 14px 60px; }
 
   /* 카드 */
   .card { background: #1e293b; border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
-  .card-header { padding: 10px 16px; font-size: 14px; font-weight: 800; color: #fff; }
+  .card-header { padding: 10px 16px; font-size: 15px; font-weight: 800; color: #fff; }
 
   /* 팀 설정 */
   .team-row { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid #0f172a; }
   .team-row:last-child { border-bottom: none; }
-  .team-num { width: 24px; height: 24px; border-radius: 50%; background: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
-  .team-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 9px 12px; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; }
+  .team-num { width: 26px; height: 26px; border-radius: 50%; background: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
+  .team-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 15px; outline: none; font-family: inherit; }
 
   /* 경기 카드 */
   .match-card { background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-  .match-header { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; background: #0f172a; }
-  .match-header span:first-child { font-size: 13px; font-weight: 800; color: #64748b; }
-  .match-header span:last-child { font-size: 11px; color: #334155; }
+  .match-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; background: #0f172a; }
+  .match-header span:first-child { font-size: 14px; font-weight: 800; color: #f1f5f9; }
+  .match-header span:last-child { font-size: 12px; color: #94a3b8; }
   .match-courts { display: grid; grid-template-columns: 1fr 1fr; }
   .court { padding: 12px; }
   .court:first-child { border-right: 1px solid #0f172a; }
   .court-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .court-label { font-size: 11px; color: #475569; }
-  .group-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
-  .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+  .court-label { font-size: 12px; color: #f1f5f9; font-weight: 600; }
+  .group-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; }
+  .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .score-row:last-child { margin-bottom: 0; }
-  .team-name { font-size: 12px; flex: 1; margin-right: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #64748b; }
+  .team-name { font-size: 13px; flex: 1; margin-right: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f1f5f9; }
   .team-name.winner { color: #fbbf24; font-weight: 700; }
-  .score-input { width: 40px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 6px 2px; color: #f1f5f9; font-size: 15px; font-weight: 700; text-align: center; outline: none; font-family: inherit; flex-shrink: 0; }
+  .score-input { width: 44px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 7px 2px; color: #f1f5f9; font-size: 16px; font-weight: 700; text-align: center; outline: none; font-family: inherit; flex-shrink: 0; }
   .score-input.winner { border-color: #fbbf24; color: #fbbf24; }
 
   /* 순위 */
-  .standings-header-row { display: grid; grid-template-columns: 24px 1fr 38px 30px 30px 38px; padding: 4px 14px; font-size: 10px; color: #334155; font-weight: 700; }
-  .standings-row { display: grid; grid-template-columns: 24px 1fr 38px 30px 30px 38px; padding: 9px 14px; align-items: center; border-top: 1px solid #0f172a; }
+  .standings-header-row { display: grid; grid-template-columns: 26px 1fr 40px 32px 32px 40px; padding: 5px 14px; font-size: 11px; color: #94a3b8; font-weight: 700; }
+  .standings-row { display: grid; grid-template-columns: 26px 1fr 40px 32px 32px 40px; padding: 10px 14px; align-items: center; border-top: 1px solid #0f172a; }
   .standings-row.top { background: rgba(255,255,255,0.05); }
 
   /* 와일드카드 */
   .wc-card { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid rgba(168,85,247,0.2); margin-bottom: 14px; }
-  .wc-header { background: #a855f7; padding: 10px 16px; font-size: 14px; font-weight: 800; color: #fff; }
+  .wc-header { background: #a855f7; padding: 10px 16px; font-size: 15px; font-weight: 800; color: #fff; }
   .wc-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid #0f172a; }
 
   /* 토너먼트 */
   .rps-card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(168,85,247,0.3); }
-  .rps-title { font-size: 14px; font-weight: 800; color: #a855f7; margin-bottom: 4px; }
-  .rps-sub { font-size: 11px; color: #475569; margin-bottom: 14px; line-height: 1.6; }
-  .rps-label { font-size: 11px; color: #64748b; margin-bottom: 5px; }
-  .rps-select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; margin-bottom: 10px; }
+  .rps-title { font-size: 15px; font-weight: 800; color: #a855f7; margin-bottom: 4px; }
+  .rps-sub { font-size: 13px; color: #cbd5e1; margin-bottom: 14px; line-height: 1.7; }
+  .rps-label { font-size: 13px; color: #f1f5f9; margin-bottom: 6px; font-weight: 600; }
+  .rps-select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 15px; outline: none; font-family: inherit; margin-bottom: 12px; }
 
-  .bracket-stage-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
+  .bracket-stage-label { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; padding-left: 2px; }
   .bracket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
 
-  /* 브라켓 매치 — 리그일정과 동일한 스타일 */
   .bracket-match { background: #1e293b; border-radius: 10px; overflow: hidden; }
-  .bracket-match-header { padding: 6px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .bracket-match-header { padding: 6px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
   .bracket-match-body { padding: 10px 12px; }
 
   .connector { display: grid; grid-template-columns: 1fr 16px 1fr; align-items: center; margin: 3px 0; }
@@ -85,55 +82,55 @@
   .connector-right-line { width: 50%; height: 12px; border-bottom: 1px solid #334155; border-left: 1px solid #334155; border-radius: 0 0 0 4px; }
 
   .champion-box { margin-top: 18px; background: linear-gradient(135deg, rgba(251,191,36,0.1), rgba(245,158,11,0.1)); border: 2px solid #fbbf24; border-radius: 14px; padding: 20px; text-align: center; }
-  .champion-trophy { font-size: 32px; margin-bottom: 6px; }
-  .champion-label { font-size: 11px; color: #fbbf24; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
-  .champion-name { font-size: 22px; font-weight: 900; color: #fff; }
+  .champion-trophy { font-size: 36px; margin-bottom: 6px; }
+  .champion-label { font-size: 12px; color: #fbbf24; font-weight: 700; letter-spacing: 2px; margin-bottom: 6px; }
+  .champion-name { font-size: 24px; font-weight: 900; color: #fff; }
 
   .legend { margin-top: 16px; background: #1e293b; border-radius: 10px; padding: 14px 16px; border: 1px solid #334155; }
-  .legend-title { font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 8px; }
-  .legend-item { font-size: 11px; color: #475569; line-height: 2.2; }
+  .legend-title { font-size: 13px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+  .legend-item { font-size: 13px; color: #cbd5e1; line-height: 2.2; }
 
   /* 베팅 */
   .bet-intro { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #334155; }
-  .bet-intro-title { font-size: 14px; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
-  .bet-intro-sub { font-size: 12px; color: #475569; line-height: 1.7; }
+  .bet-intro-title { font-size: 15px; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
+  .bet-intro-sub { font-size: 13px; color: #cbd5e1; line-height: 1.7; }
   .bet-form { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 14px; border: 1px solid #3b82f655; }
-  .bet-form-title { font-size: 13px; font-weight: 800; color: #3b82f6; margin-bottom: 12px; }
-  .bet-label { font-size: 12px; color: #64748b; margin-bottom: 5px; }
-  .bet-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 14px; outline: none; font-family: inherit; margin-bottom: 10px; }
+  .bet-form-title { font-size: 14px; font-weight: 800; color: #3b82f6; margin-bottom: 12px; }
+  .bet-label { font-size: 13px; color: #f1f5f9; font-weight: 600; margin-bottom: 6px; }
+  .bet-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 7px; padding: 10px 12px; color: #f1f5f9; font-size: 15px; outline: none; font-family: inherit; margin-bottom: 12px; }
   .bet-group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-  .bet-group-btn { padding: 14px 8px; border: 2px solid #334155; border-radius: 10px; background: #0f172a; color: #475569; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.15s; font-family: inherit; }
+  .bet-group-btn { padding: 16px 8px; border: 2px solid #334155; border-radius: 10px; background: #0f172a; color: #f1f5f9; font-size: 15px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.15s; font-family: inherit; }
   .bet-group-btn.selected { color: #fff; }
-  .bet-submit { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #3b82f6; color: #fff; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit; }
+  .bet-submit { width: 100%; padding: 14px; border: none; border-radius: 8px; background: #3b82f6; color: #fff; font-size: 16px; font-weight: 800; cursor: pointer; font-family: inherit; }
   .bet-submit:active { opacity: 0.8; }
-  .bet-submit:disabled { background: #334155; color: #475569; cursor: not-allowed; }
+  .bet-submit:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
 
   .bet-results { background: #1e293b; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
-  .bet-results-header { background: #0f172a; padding: 12px 16px; font-size: 13px; font-weight: 800; color: #64748b; }
+  .bet-results-header { background: #0f172a; padding: 12px 16px; font-size: 14px; font-weight: 800; color: #f1f5f9; }
   .bet-group-section { border-top: 1px solid #0f172a; }
-  .bet-group-title { padding: 10px 16px; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
-  .bet-group-count { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-  .bet-person-row { padding: 8px 16px 8px 28px; font-size: 13px; color: #94a3b8; border-top: 1px solid #0f172a05; }
-  .bet-empty { padding: 16px; font-size: 12px; color: #334155; text-align: center; }
+  .bet-group-title { padding: 12px 16px; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; }
+  .bet-group-count { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+  .bet-person-row { padding: 9px 16px 9px 28px; font-size: 14px; color: #f1f5f9; border-top: 1px solid #0f172a22; }
+  .bet-empty { padding: 20px; font-size: 14px; color: #94a3b8; text-align: center; }
 
   /* 흐름 */
   .flow-card { background: #1e293b; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid #334155; }
-  .flow-title { font-size: 13px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
-  .flow-row { display: flex; align-items: center; gap: 12px; padding: 7px 0; border-bottom: 1px solid #0f172a; }
+  .flow-title { font-size: 14px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+  .flow-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #0f172a; }
   .flow-row:last-child { border-bottom: none; }
-  .flow-time { width: 76px; font-size: 10px; color: #475569; font-weight: 700; flex-shrink: 0; }
-  .flow-bar { width: 3px; height: 34px; border-radius: 2px; flex-shrink: 0; }
-  .flow-label { font-size: 13px; font-weight: 700; }
-  .flow-sub { font-size: 11px; color: #475569; }
+  .flow-time { width: 80px; font-size: 11px; color: #cbd5e1; font-weight: 700; flex-shrink: 0; }
+  .flow-bar { width: 3px; height: 36px; border-radius: 2px; flex-shrink: 0; }
+  .flow-label { font-size: 14px; font-weight: 700; }
+  .flow-sub { font-size: 12px; color: #cbd5e1; }
 
   .wait-card { background: #1e293b; border-radius: 10px; padding: 14px 16px; margin-top: 8px; border: 1px solid #334155; }
-  .wait-title { font-size: 13px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
-  .wait-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #0f172a; }
+  .wait-title { font-size: 14px; font-weight: 800; color: #f1f5f9; margin-bottom: 10px; }
+  .wait-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #0f172a; }
   .wait-row:last-child { border-bottom: none; }
-  .group-pill { border-radius: 5px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .group-pill { border-radius: 5px; padding: 3px 9px; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
 
-  .section-title { font-size: 13px; font-weight: 800; color: #f1f5f9; margin-bottom: 8px; }
-  .section-sub { font-size: 11px; color: #475569; margin-bottom: 12px; }
+  .section-title { font-size: 14px; font-weight: 800; color: #f1f5f9; margin-bottom: 8px; }
+  .section-sub { font-size: 12px; color: #cbd5e1; margin-bottom: 12px; }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -146,7 +143,6 @@
         <div class="header-title">🏓 피클볼 리그</div>
         <div class="header-status" id="status">연결 중...</div>
       </div>
-      <button class="refresh-btn" onclick="manualRefresh()">🔄</button>
     </div>
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('setup')">🏷️ 팀</button>
@@ -162,7 +158,7 @@
 
   <!-- 팀 설정 -->
   <div id="tab-setup">
-    <div style="font-size:13px;color:#64748b;margin-bottom:14px">팀 이름을 수정할 수 있어요.</div>
+    <div style="font-size:14px;color:#f1f5f9;margin-bottom:14px">팀 이름을 수정할 수 있어요.</div>
     <div id="setup-groups"></div>
   </div>
 
@@ -180,10 +176,10 @@
     <div id="schedule-matches"></div>
     <div class="wait-card">
       <div class="wait-title">🪑 대기 현황</div>
-      <div class="wait-row"><span class="group-pill" style="background:#3b82f6">A조</span><span style="font-size:12px;color:#10b981">🏓 1·3·5경기</span><span style="font-size:12px;color:#475569">🪑 2·4·6경기</span></div>
-      <div class="wait-row"><span class="group-pill" style="background:#ef4444">B조</span><span style="font-size:12px;color:#10b981">🏓 1·3·5경기</span><span style="font-size:12px;color:#475569">🪑 2·4·6경기</span></div>
-      <div class="wait-row"><span class="group-pill" style="background:#f59e0b">C조</span><span style="font-size:12px;color:#10b981">🏓 2·4·6경기</span><span style="font-size:12px;color:#475569">🪑 1·3·5경기</span></div>
-      <div class="wait-row"><span class="group-pill" style="background:#10b981">D조</span><span style="font-size:12px;color:#10b981">🏓 2·4·6경기</span><span style="font-size:12px;color:#475569">🪑 1·3·5경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#3b82f6">A조</span><span style="font-size:13px;color:#f1f5f9">🏓 1·3·5경기</span><span style="font-size:13px;color:#cbd5e1">🪑 2·4·6경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#ef4444">B조</span><span style="font-size:13px;color:#f1f5f9">🏓 1·3·5경기</span><span style="font-size:13px;color:#cbd5e1">🪑 2·4·6경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#f59e0b">C조</span><span style="font-size:13px;color:#f1f5f9">🏓 2·4·6경기</span><span style="font-size:13px;color:#cbd5e1">🪑 1·3·5경기</span></div>
+      <div class="wait-row"><span class="group-pill" style="background:#10b981">D조</span><span style="font-size:13px;color:#f1f5f9">🏓 2·4·6경기</span><span style="font-size:13px;color:#cbd5e1">🪑 1·3·5경기</span></div>
     </div>
   </div>
 
@@ -434,12 +430,12 @@ function renderStandings() {
         <div class="standings-header-row"><span>#</span><span>팀</span><span style="text-align:center">승점</span><span style="text-align:center">승</span><span style="text-align:center">패</span><span style="text-align:center">득실</span></div>
         ${st.map((row,rank)=>`
           <div class="standings-row ${rank===0?"top":""}">
-            <span style="font-size:13px;font-weight:800;color:${rank===0?color:"#334155"}">${rank+1}</span>
-            <span style="font-size:13px;font-weight:${rank===0?700:400};color:${rank===0?"#f1f5f9":"#64748b"}">${escHtml(row.name)}</span>
-            <span style="font-size:14px;font-weight:800;color:${color};text-align:center">${row.pts}</span>
-            <span style="font-size:12px;color:#64748b;text-align:center">${row.won}</span>
-            <span style="font-size:12px;color:#64748b;text-align:center">${row.lost}</span>
-            <span style="font-size:12px;color:${row.diff>=0?"#10b981":"#ef4444"};text-align:center">${row.diff>0?"+":""}${row.diff}</span>
+            <span style="font-size:14px;font-weight:800;color:${rank===0?color:"#94a3b8"}">${rank+1}</span>
+            <span style="font-size:14px;font-weight:${rank===0?700:400};color:#f1f5f9">${escHtml(row.name)}</span>
+            <span style="font-size:15px;font-weight:800;color:${color};text-align:center">${row.pts}</span>
+            <span style="font-size:13px;color:#f1f5f9;text-align:center">${row.won}</span>
+            <span style="font-size:13px;color:#f1f5f9;text-align:center">${row.lost}</span>
+            <span style="font-size:13px;color:${row.diff>=0?"#10b981":"#ef4444"};text-align:center">${row.diff>0?"+":""}${row.diff}</span>
           </div>
         `).join("")}
       </div>`;
@@ -449,15 +445,15 @@ function renderStandings() {
     <div class="wc-card">
       <div class="wc-header">🎟️ 와일드카드 (2위 중 상위 2팀)</div>
       ${wc.length===0
-        ? `<div style="padding:14px 16px;font-size:13px;color:#475569">경기 결과를 입력하면 자동 선정됩니다.</div>`
+        ? `<div style="padding:14px 16px;font-size:14px;color:#94a3b8">경기 결과를 입력하면 자동 선정됩니다.</div>`
         : wc.map((w,i)=>`
           <div class="wc-row">
             <div style="display:flex;align-items:center;gap:10px">
-              <span style="background:#a855f722;color:#a855f7;border-radius:16px;padding:3px 10px;font-size:11px;font-weight:700">WC${i+1}</span>
-              <span style="font-size:14px;font-weight:700">${escHtml(w.name)}</span>
-              <span style="font-size:11px;color:#475569">${w.group}조 2위</span>
+              <span style="background:#a855f722;color:#a855f7;border-radius:16px;padding:3px 10px;font-size:12px;font-weight:700">WC${i+1}</span>
+              <span style="font-size:15px;font-weight:700">${escHtml(w.name)}</span>
+              <span style="font-size:12px;color:#cbd5e1">${w.group}조 2위</span>
             </div>
-            <span style="font-size:14px;font-weight:800;color:#a855f7">${w.pts}점</span>
+            <span style="font-size:15px;font-weight:800;color:#a855f7">${w.pts}점</span>
           </div>`).join("")}
     </div>`;
   document.getElementById("standings-content").innerHTML = html;
@@ -478,7 +474,7 @@ function selectBetGroup(g) {
       btn.classList.remove("selected");
       btn.style.borderColor = color + "55";
       btn.style.background = "#0f172a";
-      btn.style.color = "#475569";
+      btn.style.color = "#f1f5f9";
     }
   });
   checkBetSubmitEnabled();
